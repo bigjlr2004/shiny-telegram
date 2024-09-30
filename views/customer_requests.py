@@ -91,3 +91,31 @@ def update_customer(id, new_customer):
         if customer["id"] == id:
             CUSTOMERS[index] = new_customer
             break
+
+
+def get_customer_by_email(email):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+        # Use a parameter to inject a variables value
+        # into the SQL statement
+        db_cursor.execute(
+            """SELECT c.id,c.name, c.address, c.email, c.password FROM customer c
+            WHERE c.email = ?""",
+            (email,),
+        )
+
+        # Load the single result into memory
+        customers = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            customer = Customer(
+                row["id"], row["name"], row["address"], row["email"], row["password"]
+            )
+        requested_customer = customer.__dict__
+        # remove the email and password from the object we are sending back.
+        requested_customer["email"] = ""
+        requested_customer["password"] = ""
+        customers.append(requested_customer)
+    return customers
