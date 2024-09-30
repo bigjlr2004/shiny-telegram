@@ -14,3 +14,4 @@ class Employee:
         self.name = name
         self.address = address
         self.location_id = location_id
+        self.location = None

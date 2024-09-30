@@ -1,6 +1,6 @@
 import json
 import sqlite3
-from models import Location
+from models import Location, Employee, Animal
 
 LOCATIONS = [
     {"id": 1, "name": "Nashville North", "address": "8422 Johnson Pike"},
@@ -75,7 +75,71 @@ def get_single_location(id):
         # Create a location instance from the current row
         location = Location(data["id"], data["name"], data["address"])
 
-        return location.__dict__
+        db_cursor.execute(
+            """
+        SELECT
+            e.id,
+            e.name,
+            e.address,
+            e.location_id
+            FROM employee e
+            WHERE e.location_id = ?
+        """,
+            (id,),
+        )
+
+        # Initialize an empty list to hold all employee representations
+        employees = []
+
+        # Convert rows of data into a Python list
+        dataset = db_cursor.fetchall()
+
+        # Iterate list of data returned from database
+        for row in dataset:
+
+            # Create an employee instance from the current row.
+            # Note that the database fields are specified in
+            # exact order of the parameters defined in the
+            # Animal class above.
+            employee = Employee(
+                row["id"],
+                row["name"],
+                row["address"],
+                row["location_id"],
+            )
+            employees.append(employee.__dict__)
+
+        db_cursor.execute(
+            """
+            SELECT
+                a.id,
+                a.name,
+                a.breed,
+                a.status,
+                a.location_id,
+                a.customer_id
+            FROM animal a
+            WHERE a.location_id = ?
+            """,
+            (id,),
+        )
+        animals = []
+
+        dataset = db_cursor.fetchall()
+        for row in dataset:
+            animal = Animal(
+                row["id"],
+                row["name"],
+                row["breed"],
+                row["status"],
+                row["location_id"],
+                row["customer_id"],
+            )
+            animals.append(animal.__dict__)
+
+    location.animals = animals
+    location.employees = employees
+    return location.__dict__
 
 
 def create_location(location):
